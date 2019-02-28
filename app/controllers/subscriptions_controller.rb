@@ -11,30 +11,13 @@ class SubscriptionsController < ApplicationController
       return
     end
 
-    plan = Plan.find(params[:plan_id])
-    fake_pay_response = FakePayApi.submit_purchase_request(
-      credit_card_number: params[:billing_credit_card_number],
-      expiration_month:   params[:billing_expiration_month],
-      expiration_year:    params[:billing_expiration_year],
-      cvv:                params[:billing_cvv],
-      zipcode:            params[:billing_zipcode],
-      price:              plan.price
-    )
+    subscription = Subscription.new(subscription_params)
+    payment_response = subscription.submit_initial_payment
 
-    if fake_pay_response[:success]
-      subscription = Subscription.new(subscription_params)
-      subscription.fake_pay_token = fake_pay_response[:token]
-      subscription.next_billing_date = Date.today + 1.month
-
-      if subscription.save
-        render json: subscription, status: :created
-        return
-      else
-        render json: { errors: subscription.errors }, status: :unprocessable_entity
-        return
-      end
+    if payment_response[:success]
+      render json: subscription, status: :created
     else
-      render json: { errors: fake_pay_response[:error] }, status: :unprocessable_entity
+      render json: { errors: payment_response[:errors] }, status: :unprocessable_entity
     end
   end
 
@@ -77,6 +60,11 @@ class SubscriptionsController < ApplicationController
       :shipping_name,
       :shipping_address,
       :shipping_zipcode,
+      :billing_credit_card_number,
+      :billing_expiration_month,
+      :billing_expiration_year,
+      :billing_cvv,
+      :billing_zipcode,
     ])
   end
 end
