@@ -69,7 +69,7 @@ The following parameters are required:
 
 # Bonus
 
-As a bonus, I created a Rake Task that can be run via cron to renew any subscriptions whose `next_billing_date` is a today.
+As a bonus, I created a Rake Task that can be run via cron to renew any subscriptions whose `next_billing_date` is today.
 The task will initiate a payment request for the Subscription and auto-update their `next_billing_date` to 1 month from now.
 
 In your Terminal/Shell:
