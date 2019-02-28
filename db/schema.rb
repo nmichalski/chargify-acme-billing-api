@@ -10,23 +10,24 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_02_26_235443) do
+ActiveRecord::Schema.define(version: 2019_02_27_235600) do
 
   create_table "plans", force: :cascade do |t|
     t.string "name"
-    t.decimal "price", precision: 8, scale: 2
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "price"
   end
 
   create_table "subscriptions", force: :cascade do |t|
     t.string "shipping_name"
     t.string "shipping_address"
     t.string "shipping_zipcode"
-    t.string "fakepay_token"
+    t.string "fake_pay_token"
     t.integer "plan_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.date "next_billing_date"
     t.index ["plan_id"], name: "index_subscriptions_on_plan_id"
   end
 
