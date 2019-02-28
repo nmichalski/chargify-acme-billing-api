@@ -3,7 +3,7 @@ class FakePayApi
   BASE_URL = "https://www.fakepay.io/purchase"
 
   class << self
-    def submit_purchase_request(credit_card_number:, expiration_month:, expiration_year:, cvv:, zipcode:, price:)
+    def submit_purchase_request_with_credit_card(credit_card_number:, expiration_month:, expiration_year:, cvv:, zipcode:, price:)
       payload = {
         amount: price,
         card_number: credit_card_number,
@@ -13,6 +13,25 @@ class FakePayApi
         zip_code: zipcode,
       }
 
+      response = make_request_to_api(payload)
+
+      parse_response(response)
+    end
+
+    def submit_purchase_request_with_token(token:, price:)
+      payload = {
+        amount: price,
+        token: token,
+      }
+
+      response = make_request_to_api(payload)
+
+      parse_response(response)
+    end
+
+    private
+
+    def make_request_to_api(payload)
       begin
         response = RestClient.post(
           BASE_URL,
@@ -22,11 +41,7 @@ class FakePayApi
       rescue RestClient::ExceptionWithResponse => exception
         response = exception.response
       end
-
-      parse_response(response)
     end
-
-    private
 
     def authorization_header
       { "Authorization" => "Token token=#{ENV["FAKE_PAY_API_KEY"]}" }

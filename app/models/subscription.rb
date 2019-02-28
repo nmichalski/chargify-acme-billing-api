@@ -15,13 +15,22 @@ class Subscription < ApplicationRecord
     :billing_zipcode
 
   def submit_initial_payment
-    fake_pay_response = FakePayApi.submit_purchase_request(
+    fake_pay_response = FakePayApi.submit_purchase_request_with_credit_card(
       credit_card_number: billing_credit_card_number,
       expiration_month:   billing_expiration_month,
       expiration_year:    billing_expiration_year,
       cvv:                billing_cvv,
       zipcode:            billing_zipcode,
       price:              self.plan.price
+    )
+
+    parse_fake_pay_response(fake_pay_response)
+  end
+
+  def renew_payment
+    fake_pay_response = FakePayApi.submit_purchase_request_with_token(
+      token: self.fake_pay_token,
+      price: self.plan.price
     )
 
     parse_fake_pay_response(fake_pay_response)
