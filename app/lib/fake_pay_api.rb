@@ -1,6 +1,6 @@
 class FakePayApi
 
-  BASE_URL = "https://www.fakepay.io/purchase"
+  PURCHASE_URL = "https://www.fakepay.io/purchase"
 
   class << self
     def submit_purchase_request_with_credit_card(credit_card_number:, expiration_month:, expiration_year:, cvv:, zipcode:, price:)
@@ -34,7 +34,7 @@ class FakePayApi
     def make_request_to_api(payload)
       begin
         response = RestClient.post(
-          BASE_URL,
+          PURCHASE_URL,
           payload,
           authorization_header
         )
