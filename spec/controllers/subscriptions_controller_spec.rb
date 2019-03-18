@@ -83,6 +83,7 @@ RSpec.describe SubscriptionsController, type: :controller do
 
     context 'with invalid params' do
       let(:invalid_params) { {} }
+      let(:invalid_params_with_customer_id) { { customer_id: create(:customer).id } }
 
       it 'returns error message listing missing parameters' do
         post :create, params: invalid_params
@@ -97,6 +98,21 @@ RSpec.describe SubscriptionsController, type: :controller do
         expect(json_response["errors"]).to include("billing_expiration_year")
         expect(json_response["errors"]).to include("billing_cvv")
         expect(json_response["errors"]).to include("billing_zipcode")
+      end
+
+      it 'when :customer_id is provided, returns error message not including customer parameters' do
+        post :create, params: invalid_params_with_customer_id
+        expect(response).to have_http_status(:unprocessable_entity)
+        json_response = JSON.parse(response.body)
+        expect(json_response["errors"]).to include("plan_id")
+        expect(json_response["errors"]).not_to include("shipping_name")
+        expect(json_response["errors"]).not_to include("shipping_address")
+        expect(json_response["errors"]).not_to include("shipping_zipcode")
+        expect(json_response["errors"]).not_to include("billing_credit_card_number")
+        expect(json_response["errors"]).not_to include("billing_expiration_month")
+        expect(json_response["errors"]).not_to include("billing_expiration_year")
+        expect(json_response["errors"]).not_to include("billing_cvv")
+        expect(json_response["errors"]).not_to include("billing_zipcode")
       end
     end
   end
