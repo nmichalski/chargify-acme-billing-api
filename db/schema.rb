@@ -10,7 +10,16 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_02_27_235600) do
+ActiveRecord::Schema.define(version: 2019_03_18_184115) do
+
+  create_table "customers", force: :cascade do |t|
+    t.string "shipping_name"
+    t.string "shipping_address"
+    t.string "shipping_zipcode"
+    t.string "fake_pay_token"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
 
   create_table "plans", force: :cascade do |t|
     t.string "name"
@@ -20,14 +29,12 @@ ActiveRecord::Schema.define(version: 2019_02_27_235600) do
   end
 
   create_table "subscriptions", force: :cascade do |t|
-    t.string "shipping_name"
-    t.string "shipping_address"
-    t.string "shipping_zipcode"
-    t.string "fake_pay_token"
     t.integer "plan_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.date "next_billing_date"
+    t.integer "customer_id"
+    t.index ["customer_id"], name: "index_subscriptions_on_customer_id"
     t.index ["plan_id"], name: "index_subscriptions_on_plan_id"
   end
 

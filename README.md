@@ -40,7 +40,7 @@
 
 # Instructions
 
-#### Steps to Run Locally
+#### Steps to Run Local Server
 In your Terminal/Shell:
 
     git clone https://github.com/nmichalski/chargify-acme-billing-api.git
@@ -51,21 +51,36 @@ In your Terminal/Shell:
     bundle exec rake db:seed
     bundle exec rails s
 
-Then use [Postman](https://www.getpostman.com/) or similar tool to test the following endpoint:
+#### Endpoint Documentation
 
     POST localhost:3000/subscriptions
 
 The following parameters are required:
 - `plan_id`
   - valid values are `1`, `2`, and `3` (for Bronze, Silver, and Gold, respectively)
-- `shipping_name`
-- `shipping_address`
-- `shipping_zipcode`
-- `billing_credit_card_number`
-- `billing_expiration_month`
-- `billing_expiration_year`
-- `billing_cvv`
-- `billing_zipcode`
+- `customer_id`\*
+- `customer_attributes`\*
+  - `shipping_name`
+  - `shipping_address`
+  - `shipping_zipcode`
+  - `billing_credit_card_number`
+  - `billing_expiration_month`
+  - `billing_expiration_year`
+  - `billing_cvv`
+  - `billing_zipcode`
+
+\* = one (and only one) of these are allowed at a time
+
+#### Steps to Run Tests
+In your Terminal/Shell:
+
+    RAILS_ENV=test bundle exec rake db:create
+    RAILS_ENV=test bundle exec rake db:migrate
+    bundle exec rspec spec
+
+To view the Simplecov results:
+
+    open coverage/index.html
 
 # Bonus
 
@@ -75,4 +90,9 @@ The task will initiate a payment request for the Subscription and auto-update th
 In your Terminal/Shell:
 
     bundle exec rake renew_subscriptions_due_today
+
+# Bonus 2
+
+As a second challenge, I added the ability to reference an existing customer when making a `POST /subscriptions` call.
+Effectively, I added support for the `customer_id` parameter, as shown in the [Endpoint Documentation](#endpoint-documentation) section above.
 

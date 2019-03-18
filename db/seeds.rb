@@ -6,7 +6,7 @@
 #   movies = Movie.create([{ name: 'Star Wars' }, { name: 'Lord of the Rings' }])
 #   Character.create(name: 'Luke', movie: movies.first)
 
-plans = Plan.create([
+Plan.create([
   { name: "Bronze", price: 1999 }, # price is in cents
   { name: "Silver", price: 4900 },
   { name: "Gold",   price: 9900 },
