@@ -6,10 +6,6 @@ RSpec.describe Subscription, type: :model do
   end
 
   describe 'ActiveModel validations' do
-    it { is_expected.to validate_presence_of(:shipping_name) }
-    it { is_expected.to validate_presence_of(:shipping_address) }
-    it { is_expected.to validate_presence_of(:shipping_zipcode) }
-    it { is_expected.to validate_presence_of(:fake_pay_token) }
     it { is_expected.to validate_presence_of(:next_billing_date) }
   end
 
@@ -19,12 +15,13 @@ RSpec.describe Subscription, type: :model do
   let(:failed_fake_pay_response)     { { success: false, token: nil,         error: error_message } }
 
   describe '#submit_initial_payment' do
-    let(:subscription) { build(:subscription, :with_credit_card, fake_pay_token: nil, next_billing_date: nil, plan: create(:plan)) }
+    let(:customer) { build(:customer, :with_credit_card, fake_pay_token: nil) }
+    let(:subscription) { build(:subscription, next_billing_date: nil, plan: create(:plan), customer: customer) }
 
     it 'upon success of FakePayApi, sets the fake_pay_token and next_billing_date' do
       allow(FakePayApi).to receive(:submit_purchase_request_with_credit_card).and_return(successful_fake_pay_response)
       subscription.submit_initial_payment
-      expect(subscription.fake_pay_token).to eql(valid_token)
+      expect(customer.fake_pay_token).to eql(valid_token)
       expect(subscription.next_billing_date).to eql(Date.today + 1.month)
     end
 
@@ -47,12 +44,13 @@ RSpec.describe Subscription, type: :model do
   end
 
   describe '#renew_payment' do
-    let(:subscription) { create(:subscription, fake_pay_token: valid_token) }
+    let(:customer) { create(:customer, fake_pay_token: valid_token) }
+    let(:subscription) { create(:subscription, customer: customer) }
 
     it 'upon success of FakePayApi, sets the fake_pay_token and next_billing_date' do
       allow(FakePayApi).to receive(:submit_purchase_request_with_token).and_return(successful_fake_pay_response)
       subscription.renew_payment
-      expect(subscription.fake_pay_token).to eql(valid_token)
+      expect(customer.fake_pay_token).to eql(valid_token)
       expect(subscription.next_billing_date).to eql(Date.today + 1.month)
     end
 

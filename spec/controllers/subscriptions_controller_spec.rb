@@ -17,7 +17,7 @@ RSpec.describe SubscriptionsController, type: :controller do
 
   describe 'GET #show' do
     let!(:subscription) { create(:subscription) }
-    let(:serialized_subscription) { JSON.parse(subscription.to_json) }
+    let(:serialized_subscription) { JSON.parse(subscription.to_json(include: :customer)) }
     let(:valid_params) { { id: subscription.id } }
 
     it 'returns Subscription with given ID' do
@@ -30,20 +30,52 @@ RSpec.describe SubscriptionsController, type: :controller do
 
   describe 'POST #create' do
     context 'with valid params' do
-      let(:valid_params) { attributes_for(:subscription, :with_credit_card, plan_id: create(:plan).id) }
-      let(:fake_pay_response) { { success: true, token: valid_params[:fake_pay_token], error: nil } }
-
-      it 'increments Subscription.count by 1' do
-        allow(FakePayApi).to receive(:submit_purchase_request_with_credit_card).and_return(fake_pay_response)
-        expect { post :create, params: valid_params }.to change { Subscription.count }.by(1)
+      let(:valid_params_with_new_customer) do
+        {
+          plan_id: create(:plan).id,
+          customer_attributes: attributes_for(:customer, :with_credit_card),
+        }
+      end
+      let(:valid_params_with_existing_customer) do
+        {
+          plan_id: create(:plan).id,
+          customer_id: create(:customer).id,
+        }
+      end
+      let(:fake_pay_response) do
+        {
+          success: true,
+          token: attributes_for(:customer)[:fake_pay_token],
+          error: nil
+        }
       end
 
-      it 'returns the newly created subscription record' do
+      it 'given a new customer, increments Subscription.count by 1' do
         allow(FakePayApi).to receive(:submit_purchase_request_with_credit_card).and_return(fake_pay_response)
-        post :create, params: valid_params
+        expect { post :create, params: valid_params_with_new_customer }.to change { Subscription.count }.by(1)
+      end
+
+      it 'given an existing customer, increments Subscription.count by 1' do
+        allow(FakePayApi).to receive(:submit_purchase_request_with_token).and_return(fake_pay_response)
+        expect { post :create, params: valid_params_with_existing_customer }.to change { Subscription.count }.by(1)
+      end
+
+      it 'given a new customer, returns the newly created subscription record' do
+        allow(FakePayApi).to receive(:submit_purchase_request_with_credit_card).and_return(fake_pay_response)
+        post :create, params: valid_params_with_new_customer
         expect(response).to have_http_status(:created)
         newest_subscription = Subscription.last
-        serialized_subscription = JSON.parse(newest_subscription.to_json)
+        serialized_subscription = JSON.parse(newest_subscription.to_json(include: :customer))
+        json_response = JSON.parse(response.body)
+        expect(json_response).to eql(serialized_subscription)
+      end
+
+      it 'given an existing customer, returns the newly created subscription record' do
+        allow(FakePayApi).to receive(:submit_purchase_request_with_token).and_return(fake_pay_response)
+        post :create, params: valid_params_with_existing_customer
+        expect(response).to have_http_status(:created)
+        newest_subscription = Subscription.last
+        serialized_subscription = JSON.parse(newest_subscription.to_json(include: :customer))
         json_response = JSON.parse(response.body)
         expect(json_response).to eql(serialized_subscription)
       end

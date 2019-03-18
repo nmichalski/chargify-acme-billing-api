@@ -9,7 +9,7 @@ class SubscriptionsController < ApplicationController
     payment_response = subscription.submit_initial_payment
 
     if payment_response[:success]
-      render json: subscription, status: :created
+      render json: subscription, include: [:customer], status: :created
     else
       render json: { errors: payment_response[:errors] }, status: :unprocessable_entity
     end
@@ -17,7 +17,7 @@ class SubscriptionsController < ApplicationController
 
   def show
     subscription = Subscription.find(params[:id])
-    render json: subscription
+    render json: subscription, include: [:customer]
   end
 
   def update
@@ -33,14 +33,17 @@ class SubscriptionsController < ApplicationController
   def subscription_params
     params.permit([
       :plan_id,
-      :shipping_name,
-      :shipping_address,
-      :shipping_zipcode,
-      :billing_credit_card_number,
-      :billing_expiration_month,
-      :billing_expiration_year,
-      :billing_cvv,
-      :billing_zipcode,
+      :customer_id,
+      customer_attributes: [
+        :shipping_name,
+        :shipping_address,
+        :shipping_zipcode,
+        :billing_credit_card_number,
+        :billing_expiration_month,
+        :billing_expiration_year,
+        :billing_cvv,
+        :billing_zipcode,
+      ]
     ])
   end
 end
